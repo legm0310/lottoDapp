@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { ThirdwebProvider } from "@thirdweb-dev/react";
+import { Sepolia } from "@thirdweb-dev/chains";
 import "./styles/globals.css";
 
 // This is the chain your dApp will work on.
@@ -13,11 +14,9 @@ const activeChain = "ethereum";
 const container = document.getElementById("root");
 const root = createRoot(container);
 root.render(
-  <React.StrictMode>
-    <ThirdwebProvider activeChain={activeChain}>
-      <App />
-    </ThirdwebProvider>
-  </React.StrictMode>
+  <ThirdwebProvider activeChain={Sepolia}>
+    <App />
+  </ThirdwebProvider>
 );
 
 // If you want to start measuring performance in your app, pass a function

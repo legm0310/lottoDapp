@@ -19,3 +19,19 @@ body {
   color: #e7e8e8;
   background: #0f1318;
 }
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+input {
+  align-items: center;
+}
+:root {
+  --black: #1c1e21;
+  --white: #ffffff;
+  --tw-color1: #a855f7;
+  --tw-color1-hover: #9333ea;
+}
