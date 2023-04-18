@@ -9,17 +9,21 @@ import {
   useContractWrite,
   useMetadata,
   useNetworkMismatch,
+  useSDK,
   useSwitchChain,
   useTokenBalance,
 } from "@thirdweb-dev/react";
+import { ThirdwebSDK } from "@thirdweb-dev/sdk";
 import { Sepolia } from "@thirdweb-dev/chains";
 import "./styles/Home.css";
 import { useEffect, useMemo, useState } from "react";
+import { ethers } from "ethers";
 
-const contractAddress = "0xcf52CDe0645302BdA944A7C79F4E867aB896e87A";
-
+const contractAddress = "0x8B1c3790686A0AbB14545409E9ce544b3D8EF966";
 export default function Home() {
   const { contract } = useContract(contractAddress);
+  const sdk = new ThirdwebSDK(Sepolia);
+  const contractSdk = sdk?.getContract(contractAddress);
   const { data: Metadata } = useMetadata(contract);
   const connectionStatus = useConnectionStatus();
   const address = useAddress();
@@ -27,7 +31,6 @@ export default function Home() {
   const networkMismatch = useNetworkMismatch();
   const { data: balance, error } = useTokenBalance(contract, address);
   const { data: owner } = useContractRead(contract, "owner", []);
-
   const { mutateAsync: MintToUser } = useContractWrite(contract, "MintToUser");
   const { mutateAsync: lotto, isLoading } = useContractWrite(contract, "lotto");
   const { mutateAsync: adminMintToUser } = useContractWrite(
@@ -41,15 +44,11 @@ export default function Home() {
   const [mintAmount, setMintAmount] = useState(0);
   const [amount, setAmount] = useState(0);
 
-  const balanceD = useMemo(() => {
-    return bal;
-  }, [bal]);
-
-  useEffect(() => {}, []);
   const [formValues, setFormValues] = useState({
     betNum: "",
     betAmount: "",
   });
+
   const handleFormChange = (e) => {
     setFormValues({
       ...formValues,
@@ -76,11 +75,6 @@ export default function Home() {
         return;
       }
       e.preventDefault();
-      // const test = await contract.call("lotto", [
-      //   parseInt(formValues.betNum),
-      //   parseInt(formValues.betAmount),
-      // ]);
-      // console.log(test);
     } catch {}
   };
 
@@ -236,30 +230,35 @@ export default function Home() {
                     colorMode="dark"
                     contractAddress={contractAddress}
                     action={async (contract) => {
-                      // await contract
-                      //   .call("lotto", [
-                      //     formValues.betNum,
-                      //     formValues.betAmount,
-                      //   ])
-                      //   .then((result) => {
-                      //     console.log(result);
-                      //   });
-                      // playLotto(
-                      //   parseInt(formValues.betNum),
-                      //   parseInt(formValues.betAmount)
-                      // )
-                      //   .then((data) => {
-                      //     console.log("data", data);
-                      //   })
-                      //   .catch((err) => {
-                      //     console.error("error", err);
-                      //   });
-                      await playLotto(
-                        parseInt(formValues.betNum),
-                        parseInt(formValues.betAmount)
+                      await contract.call(
+                        "lotto",
+                        [
+                          parseInt(formValues.betNum),
+                          parseInt(formValues.betAmount),
+                        ],
+                        {
+                          gasLimit: 150000,
+                        }
                       );
                     }}
-                    onSuccess={() => alert("배팅 완료. 잔액이 갱신되었습니다.")}
+                    onSuccess={async () => {
+                      const [resultNumber, resultValue] = await contract.call(
+                        "getLottoResult",
+                        [address]
+                      );
+                      const formattedResultValue =
+                        ethers.utils.formatEther(resultValue);
+                      console.log(`Result Number: ${resultNumber}`);
+                      console.log(`Result Value: ${formattedResultValue}`);
+
+                      if (formattedResultValue != 0) {
+                        alert(
+                          `당첨 !\n결과 : ${resultNumber}\n당첨금 : ${formattedResultValue}
+                        `
+                        );
+                      }
+                      alert(`낙첨 ..\n결과 : ${resultNumber}`);
+                    }}
                     onError={(err) => alert(err)}
                   >
                     배팅하기
